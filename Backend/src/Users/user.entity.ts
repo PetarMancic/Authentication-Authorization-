@@ -7,17 +7,20 @@ export class User {
   id: number;
 
   @Column()
-  ime: string;
+  name: string;
 
   @Column()
-  prezime: string;
+  surname: string;
 
   @Column()
-  nadimak: string;
+  nickname: string;
 
   
   @Column({ unique: true })
   email: string;
+
+  @Column({ unique: true })
+  username: string;
 
   @Column()
   password:string;

@@ -5,7 +5,8 @@ import {
   faInfoCircle,
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import axios from "./api/axios";
+import axios from "../api/axios";
+import { Link } from "react-router-dom";
 
 const USER_REGEX = /^[A-z][A-z0-9-_]{3,23}$/;
 const PWD_REGEX = /^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#$%]).{8,24}$/;
@@ -40,14 +41,14 @@ const Register = () => {
 
   useEffect(() => {
     setValidPwd(PWD_REGEX.test(pwd));
-    setValidMatch(pwd === matchPwd);
+    //setValidMatch(pwd === matchPwd);
   }, [pwd, matchPwd]);
 
   useEffect(() => {
     setErrMsg("");
   }, [user, pwd, matchPwd]);
 
-  const handleSubmit = async (e) => {
+  const logIhHandler = async (e) => {
     e.preventDefault();
     // if button enabled with JS hack
     const v1 = USER_REGEX.test(user);
@@ -60,18 +61,23 @@ const Register = () => {
     try {
       const response = await axios.post(
         "auth/login",
-        JSON.stringify({ email: user, password: pwd }), // Objekat kreiran direktno
+        JSON.stringify({ username: user, password: pwd }), // Objekat kreiran direktno
         {
           headers: { "Content-Type": "application/json" }, // Zaglavlja
           withCredentials: true, // Ako koristite kolačiće ili sesije
         }
       );
+      const token= response.data.access_token;
+      sessionStorage.clear();
+      sessionStorage.setItem("authToken", token);
+
       console.log(response?.data);
       console.log(response?.accessToken);
       console.log(JSON.stringify(response));
       setSuccess(true);
 
       if (response.data.access_token) {
+        sessionStorage.clear();
         sessionStorage.setItem("authToken", response.data.access_token);
       }
       //clear state and controlled inputs
@@ -94,12 +100,12 @@ const Register = () => {
   const prikaziPodatke = async () => {
     try {
       const token = sessionStorage.getItem("authToken"); // Dohvatanje tokena iz sessionStorage
-      console.log("Token je oblika", token);
+      console.log("Token je pblika ", token, " iz auth/profile");
 
       if (!token) {
         throw new Error("Token nije pronađen u sessionStorage");
       }
-
+      console.log("Sada cu da prikazem podatke i saljem token :", token);
       const response = await axios.get("auth/profile", {
         headers: {
           Authorization: `Bearer ${token}`, // Dodavanje tokena u Authorization header
@@ -114,28 +120,36 @@ const Register = () => {
     }
   };
 
-  const vratiUsera = async () => {
-    try {
-      const token = sessionStorage.getItem("authToken"); // Dohvatanje tokena iz sessionStorage
-      console.log("Token je oblika", token);
+  const vratiUsera = () => {
+    const token = sessionStorage.getItem("authToken"); // Dohvatanje tokena iz sessionStorage
+    console.log("Token je pblika ", token, " iz users/getUser");
 
-      if (!token) {
-        throw new Error("Token nije pronađen u sessionStorage");
-      }
-
-      const response = await axios.get("users/getUser/5", {
-        headers: {
-          Authorization: `Bearer ${token}`, // saljem token posto imamo autentifikaciju 
-        },
-      });
-
-      console.log("response.data je ", response.data);
-    } catch (error) {
-      // Obrada greške
-      console.error("Greška prilikom poziva API-ja:", error);
-      // Možete ovde postaviti korisničku poruku o grešci ili nešto drugo, na primer:
-      alert("Došlo je do greške prilikom dobijanja podataka!");
+    if (!token) {
+      alert("Token nije pronađen u sessionStorage");
+      return;
     }
+
+    axios
+      .get("users/getUser/2", {
+        headers: {
+          Authorization: `Bearer ${token}`, // šaljem token pošto imamo autentifikaciju
+        },
+      })
+      .then((response) => {
+        // Ispisujemo odgovor sa servera (response.data)
+        console.log("response.data je:", response.data);
+
+        // Ako želite specifično polje iz response.data
+        console.log("Korisničko ime:", response.data.username); // primer ako backend šalje "username"
+      })
+      .catch((error) => {
+        console.error("Greška prilikom poziva API-ja:", error);
+
+      
+        if (error.response) {
+          alert(`Error: ${error.response.data.message || error.response.data}`);
+        }
+      });
   };
 
   return (
@@ -159,7 +173,7 @@ const Register = () => {
             {errMsg}
           </p>
           <h1>Register</h1>
-          <form onSubmit={handleSubmit}>
+          <form onSubmit={logIhHandler}>
             <label htmlFor="username">
               Username:
               <FontAwesomeIcon
@@ -238,7 +252,7 @@ const Register = () => {
               <span aria-label="percent">%</span>
             </p>
 
-            <label htmlFor="confirm_pwd">
+            {/* <label htmlFor="confirm_pwd">
               Confirm Password:
               <FontAwesomeIcon
                 icon={faCheck}
@@ -268,13 +282,14 @@ const Register = () => {
             >
               <FontAwesomeIcon icon={faInfoCircle} />
               Must match the first password input field.
-            </p>
+            </p> */}
 
             <button
-              disabled={!validName || !validPwd || !validMatch ? true : false}
+              disabled={!validName || !validPwd  ? true : false} // disabled={!validName || !validPwd || !validMatch ? true : false}
             >
               Sign Up
             </button>
+            <Link to="/signup"> Sign up</Link>
           </form>
           <p>
             Already registered?

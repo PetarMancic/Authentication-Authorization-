@@ -3,6 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { User } from './user.entity';
 import * as bcrypt from 'bcrypt';
+import { error } from 'console';
 
 @Injectable()
 export class UsersService {
@@ -17,23 +18,30 @@ export class UsersService {
 
   //crud operacija create, read, update, delete
   async createUser(
-    ime: string,
-    prezime: string,
-    nadimak: string,
-    email: string,
-    password: string,
-    role:string
+    name: string = "",
+    surname: string = "",
+    nickname: string = "",
+    email: string = "",
+    username:string="",
+    password: string = "",
+    role:string = ""
   ): Promise<User> {
     const saltRounds = 10; // Broj iteracija za generisanje soli
     const hashedPassword = await bcrypt.hash(password, saltRounds);
 
+    if(!email || !username )
+    {
+      error("Email and password is required!");
+    }
+
     const user = this.usersRepository.create({
-      ime,
-      prezime,
-      nadimak,
+      name,
+      surname,
+      nickname,
       email,
+      username,
       password: hashedPassword, // Čuvaj samo heširanu lozinku
-      role
+      role:"user"
 
     });
 
@@ -66,9 +74,9 @@ export class UsersService {
   ): Promise<User> {
     const user = await this.usersRepository.findOne({ where: { id } });
     if (user) {
-      user.ime = _ime;
-      user.prezime = _prezime;
-      user.nadimak = _nadimak;
+      user.name = _ime;
+      user.surname = _prezime;
+      user.nickname = _nadimak;
 
       return this.usersRepository.save(user);
     }
@@ -80,7 +88,7 @@ export class UsersService {
     const user = await this.usersRepository.findOne({ where: { id } });
 
     if (user) 
-      {return user.prezime;}
+      {return user.surname;}
 
     return null;
   }

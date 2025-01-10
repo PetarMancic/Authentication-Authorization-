@@ -13,18 +13,18 @@ export class AppService {
     private userRepository: Repository<User>,
   ) {}
 
-  async createUser(
-    ime: string,
-    prezime: string,
-    nadimak: string,
-  ): Promise<User> {
-    const user = new User();
-    user.ime = ime;
-    user.prezime = prezime;
-    user.nadimak = nadimak;
+  // async createUser(
+  //   ime: string,
+  //   prezime: string,
+  //   nadimak: string,
+  // ): Promise<User> {
+  //   const user = new User();
+  //   user.ime = ime;
+  //   user.prezime = prezime;
+  //   user.nadimak = nadimak;
 
-    return await this.userRepository.save(user);
-  }
+  //   return await this.userRepository.save(user);
+  // }
 
   async getUserById(id: number): Promise<User> {
     return this.userRepository.findOne({ where: { id } }); // Pronalaženje korisnika po ID

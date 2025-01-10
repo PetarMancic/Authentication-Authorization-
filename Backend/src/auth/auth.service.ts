@@ -16,18 +16,28 @@ export class AuthService {
       ) {}
   
 
-async signIn(email: string, pass: string): Promise<any> {
-    const user = await this.usersRepository.findOne({where:{ email}}); //napisati findOne metodu i onda impportujemo samo user Service
+async signIn(username: string, pass: string): Promise<any> {
+    const user = await this.usersRepository.findOne({where:{ username}}); //napisati findOne metodu i onda impportujemo samo user Service
     if (!user || !(await bcrypt.compare(pass, user.password))) {
         throw new UnauthorizedException('Invalid credentials');
     }
-    // const { password, ...result } = user;
-    // // TODO: Generate a JWT and return it here
-    // // instead of the user object
-    // return result;
-    const payload = { ID: user.id, username: user.email, ime:user.ime,prezime: user.prezime, role:user.role}; //sub=subject jer je tako po jwt standardima 
-    return {
-      access_token: await this.jwtService.signAsync(payload),
-    };
+    const payload = { 
+      ID: user.id, 
+      name: user.name, 
+      surname: user.surname, 
+      nickname:user.nickname,
+      email:user.email,
+      username: user.username, 
+      role: user.role
+  };
+
+  const accessToken = await this.jwtService.signAsync(payload);
+
+  // Loguj access_token da vidiš šta se desava
+  console.log('Generated Access Token:', accessToken);
+
+  return {
+      access_token: accessToken,
+  };
   }
 }

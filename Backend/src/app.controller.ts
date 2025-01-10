@@ -16,10 +16,10 @@ export class AppController {
   }
 
 
-  @Post('create-user')
-  async createUser(@Body() body: { ime: string, prezime: string, nadimak: string }) {
-    return this.appService.createUser(body.ime, body.prezime, body.nadimak);
-  }
+  // @Post('create-user')
+  // async createUser(@Body() body: { ime: string, prezime: string, nadimak: string }) {
+  //   return this.appService.createUser(body.ime, body.prezime, body.nadimak);
+  // }
 
 
   
