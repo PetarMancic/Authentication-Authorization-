@@ -26,6 +26,9 @@ export class User {
   password:string;
 
   @Column()
-  role:string // moze da ima vise uloga
+  role:string; // moze da ima vise uloga
+
+  @Column({ default: false })
+  verified:boolean;
 
 }

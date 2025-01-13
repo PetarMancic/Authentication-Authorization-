@@ -4,12 +4,15 @@ import { Repository } from 'typeorm';
 import { User } from './user.entity';
 import * as bcrypt from 'bcrypt';
 import { error } from 'console';
+import { throwError } from 'rxjs';
+import { VerifyMailService } from 'src/verify-mail/verify-mail.service';
 
 @Injectable()
 export class UsersService {
   constructor(
     @InjectRepository(User)
     private usersRepository: Repository<User>,
+    private verifyMailService:VerifyMailService
   ) {}
 
   async findAll(): Promise<User[]> {
@@ -24,7 +27,8 @@ export class UsersService {
     email: string = "",
     username:string="",
     password: string = "",
-    role:string = ""
+    role:string = "",
+    verified:boolean
   ): Promise<User> {
     const saltRounds = 10; // Broj iteracija za generisanje soli
     const hashedPassword = await bcrypt.hash(password, saltRounds);
@@ -41,9 +45,16 @@ export class UsersService {
       email,
       username,
       password: hashedPassword, // Čuvaj samo heširanu lozinku
-      role:"user"
+      role:"user", // ovde napisati logiku na osnovu cega ce se dodeljivati razlicit role
+      //npr na osnovu emaila, useri uvek gmail, a admini en.rs nprr..
+      verified:false
+
 
     });
+    if(user)
+    {
+      this.verifyMailService.sendWelcomeEmail(user.email); //na ovaj mail ce 
+    }
 
     return this.usersRepository.save(user);
   }
@@ -82,6 +93,19 @@ export class UsersService {
     }
 
     return null;
+  }
+
+  async verifyUser(email:string):Promise<boolean>
+  {
+    const user=await this.usersRepository.findOne({where:{email}});
+    if(!user)
+    {
+      throw new NotFoundException(`User with email: ${email} not found`);
+    }
+    user.verified=true;
+    this.usersRepository.save(user);
+
+    return true;
   }
 
   async vratiPrezime(id: number): Promise<String> {

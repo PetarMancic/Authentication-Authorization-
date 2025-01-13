@@ -5,7 +5,7 @@ import { UsersService } from 'src/Users/user.service';
 import { Repository } from 'typeorm';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
-
+import { NotVerifiedException } from 'src/not-verified.exception';
 @Injectable()
 export class AuthService {
 
@@ -20,6 +20,10 @@ async signIn(username: string, pass: string): Promise<any> {
     const user = await this.usersRepository.findOne({where:{ username}}); //napisati findOne metodu i onda impportujemo samo user Service
     if (!user || !(await bcrypt.compare(pass, user.password))) {
         throw new UnauthorizedException('Invalid credentials');
+    }
+    if(user.verified==false)
+    {
+        throw new NotVerifiedException();
     }
     const payload = { 
       ID: user.id, 
