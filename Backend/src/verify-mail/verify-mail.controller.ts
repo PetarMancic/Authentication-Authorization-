@@ -1,6 +1,8 @@
 import { Body, Controller, Get, Param } from '@nestjs/common';
 import { VerifyMailService } from './verify-mail.service';
 import { UsersService } from 'src/Users/user.service';
+import { RealIP } from 'nestjs-real-ip';
+
 
 @Controller('verify-mail')
 export class VerifyMailController {
@@ -23,4 +25,13 @@ export class VerifyMailController {
     }
     return 'Verification failed or user not found!';
   }
+
+
+  @Get('my-ip')
+  getMyIp(): string {
+    const address= this.mailService.getLocalIPv4();
+      console.log(address);
+    return address;
+  }
+
 }

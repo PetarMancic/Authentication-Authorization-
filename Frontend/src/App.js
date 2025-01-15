@@ -23,8 +23,8 @@ function App() {
         {/* Prikaz trenutnog sadržaja */}
         <Routes>
           
-          <Route path="/" element={<Register />} />
-          <Route path="/signIn" element= {<SignIn/>} />
+          <Route path="/" element={<SignIn />} />
+          <Route path="/register" element= {<Register/>} />
         </Routes>
       </main>
     </Router>

@@ -6,7 +6,7 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import axios from "../api/axios";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 const USER_REGEX = /^[A-z][A-z0-9-_]{3,23}$/;
 const PWD_REGEX = /^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#$%]).{8,24}$/;
@@ -31,6 +31,8 @@ const Register = () => {
   const [errMsg, setErrMsg] = useState("");
   const [success, setSuccess] = useState(false);
 
+  const [name, setName]=useState("");
+  const navigate=useNavigate();
   useEffect(() => {
     userRef.current.focus();
   }, []);
@@ -71,10 +73,20 @@ const Register = () => {
       sessionStorage.clear();
       sessionStorage.setItem("authToken", token);
 
+      if(response.status===200)
+      {
+        const UserInfo=await axios.get("auth/profile", {headers:{ 
+          Authorization:`Bearer ${token}`
+        }});
+
+        setName(UserInfo.data.name);
+      }
       console.log(response?.data);
       console.log(response?.accessToken);
       console.log(JSON.stringify(response));
       setSuccess(true);
+
+      
 
       if (response.data.access_token) {
         sessionStorage.clear();
@@ -96,6 +108,13 @@ const Register = () => {
       errRef.current.focus();
     }
   };
+
+
+  const logOutHandle= ()=>
+  {
+    sessionStorage.clear();
+    setSuccess(false);
+  }
 
   const prikaziPodatke = async () => {
     try {
@@ -156,12 +175,14 @@ const Register = () => {
     <>
       {success ? (
         <section>
-          <h1>Success!</h1>
+          <h1>Welcome {name}!</h1>
+          <p> You logged successfully!</p>
           <p>
             <a href="#">Sign In</a>
             <button onClick={prikaziPodatke}>auth/profile </button>
             <button onClick={vratiUsera}>users/getUser/5 </button>
           </p>
+          <button onClick={logOutHandle}> Log out</button>
         </section>
       ) : (
         <section>
@@ -172,7 +193,7 @@ const Register = () => {
           >
             {errMsg}
           </p>
-          <h1>Register</h1>
+          <h1>Sign in</h1>
           <form onSubmit={logIhHandler}>
             <label htmlFor="username">
               Username:
@@ -289,7 +310,7 @@ const Register = () => {
             >
               Sign Up
             </button>
-            <Link to="/signup"> Sign up</Link>
+            <Link to="/register"> Register</Link>
           </form>
           <p>
             Already registered?

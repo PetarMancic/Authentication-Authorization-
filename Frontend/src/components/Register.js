@@ -111,7 +111,7 @@ const Register = () => {
       setErrMsg("Invalid Entry");
       return;
     }
-    console.log(name, surname, username,nickName, email, pwd);
+    console.log(name, surname, username, nickName, email, pwd);
     try {
       const response = await axios.post(
         "/users/createUser", // Dodaj `/` na početak ako je ruta relativna
@@ -122,7 +122,8 @@ const Register = () => {
           email: email,
           username: username,
           password: pwd,
-        }, );
+        }
+      );
       console.log(response?.data);
       console.log(response?.accessToken);
       console.log(JSON.stringify(response));
@@ -499,7 +500,7 @@ const Register = () => {
             <br />
             <span className="line">
               {/*put router link here*/}
-              <Link to="/signIn"> Sign in</Link>
+              <Link to="/"> Sign in</Link>
             </span>
           </p>
         </section>

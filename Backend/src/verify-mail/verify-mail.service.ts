@@ -1,14 +1,19 @@
 import { Injectable } from '@nestjs/common';
 import { MailerService } from '@nestjs-modules/mailer';
 import { UsersService } from 'src/Users/user.service';
+import * as os from 'os';
+
 
 @Injectable()
 export class VerifyMailService {
   constructor(private readonly mailerService: MailerService) {}
 
   async sendWelcomeEmail(to: string) {
+    
+    const ad=this.getLocalIPv4();
+    console.log(ad);
     //const verifyUser = `http://localhost:3000/verify-mail/verifyUser/${to}`; // URL za klik na dugme u emailu
-    const verifyUser= `http://192.168.1.4:3000/verify-mail/verifyUser/${to}`;
+    const verifyUser= `http://${ad}:3000/verify-mail/verifyUser/${to}`;
     const htmlContent = `
       <!DOCTYPE html>
       <html>
@@ -72,4 +77,22 @@ export class VerifyMailService {
       html: htmlContent, //html stranica
     });
   }
+
+
+
+  
+
+  getLocalIPv4(): string {
+    const networkInterfaces = os.networkInterfaces();
+    for (const interfaceName in networkInterfaces) {
+      for (const iface of networkInterfaces[interfaceName] || []) {
+        // Proverite da li je IPv4 i nije interni (127.0.0.1)
+        if (iface.family === 'IPv4' && !iface.internal && iface.address.startsWith('192.168.')) {
+          return iface.address;
+        }
+      }
+    }
+    return '127.0.0.1'; // Fallback ako se ništa ne nađe
+  }
+
 }

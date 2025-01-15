@@ -67,13 +67,6 @@ export class UsersService {
     }
 
     return user;
-  
-    // Proverite da li korisnik ima prava pristupa
-    // if (currentUser.roles.includes('admin') || currentUser.id === user.id) {
-    //   return user;
-    // } else {
-    //   throw new Error('Unauthorized access');
-    // }
   }
   
 
