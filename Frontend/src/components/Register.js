@@ -7,6 +7,8 @@ import {
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import axios from "../api/axios";
 import { Link } from "react-router-dom";
+import { Alert } from "@mui/material";
+import Alerts from "./Alerts";
 
 const USER_REGEX = /^[A-z][A-z0-9-_]{3,23}$/;
 const PWD_REGEX = /^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#$%]).{8,24}$/;
@@ -20,6 +22,10 @@ const nickNameRegex = /^[A-Za-z][A-Za-z0-9_-]{3,23}$/;
 const REGISTER_URL = "/register";
 
 const Register = () => {
+
+ 
+
+
   const userRef = useRef();
   const errRef = useRef();
   const nameRef = useRef();
@@ -191,13 +197,15 @@ const Register = () => {
     } catch (error) {
       // Obrada greške
       console.error("Greška prilikom poziva API-ja:", error);
+      
       // Možete ovde postaviti korisničku poruku o grešci ili nešto drugo, na primer:
-      alert("Došlo je do greške prilikom dobijanja podataka!");
+     // alert("Došlo je do greške prilikom dobijanja podataka!");
     }
   };
 
   return (
     <>
+   
       {success ? (
         <section>
           <h1>Success!</h1>
@@ -242,6 +250,7 @@ const Register = () => {
               aria-describedby="nameNote"
               onFocus={() => setNameFocus(true)}
               onBlur={() => setNameFocus(false)}
+               className="text-black"
             />
             <p
               id="nameNote"
@@ -281,6 +290,7 @@ const Register = () => {
               aria-describedby="surnameNote"
               onFocus={() => setSurnameFocus(true)}
               onBlur={() => setSurnameFocus(false)}
+               className="text-black"
             />
             <p
               id="surnameNote"
@@ -321,6 +331,7 @@ const Register = () => {
               aria-describedby="nameNote"
               onFocus={() => setNickNameFocus(true)}
               onBlur={() => setNickNameFocus(false)}
+               className="text-black"
             />
             <p
               id="nameNote"
@@ -361,6 +372,7 @@ const Register = () => {
               aria-describedby="uidnote"
               onFocus={() => setUserFocus(true)}
               onBlur={() => setUserFocus(false)}
+               className="text-black"
             />
             <p
               id="uidnote"
@@ -402,6 +414,7 @@ const Register = () => {
               aria-describedby="emailNote"
               onFocus={() => setEmailFocus(true)}
               onBlur={() => setEmailFocus(false)}
+               className="text-black"
             />
             <p
               id="emailNote"
@@ -438,6 +451,7 @@ const Register = () => {
               aria-describedby="pwdnote"
               onFocus={() => setPwdFocus(true)}
               onBlur={() => setPwdFocus(false)}
+               className="text-black"
             />
             <p
               id="pwdnote"
@@ -478,6 +492,7 @@ const Register = () => {
               aria-describedby="confirmnote"
               onFocus={() => setMatchFocus(true)}
               onBlur={() => setMatchFocus(false)}
+               className="text-black"
             />
             <p
               id="confirmnote"
@@ -490,17 +505,19 @@ const Register = () => {
             </p>
 
             <button
-              disabled={!validName || !validPwd || !validMatch ? true : false}
-            >
-              Sign Up
-            </button>
+            className={`bg-blue-500 text-white px-4 py-2 rounded  
+                        ${(!validName || !validPwd || !validMatch) ? 'opacity-50 cursor-not-allowed' : 'hover:bg-blue-700'}`}
+            disabled={!validName || !validPwd || !validMatch}
+          >
+            Register
+          </button>
           </form>
           <p>
             Already registered?
             <br />
             <span className="line">
               {/*put router link here*/}
-              <Link to="/"> Sign in</Link>
+              <Link to="/" className="hover:underline blue-500">Sign in</Link>
             </span>
           </p>
         </section>

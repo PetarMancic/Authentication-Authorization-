@@ -7,12 +7,27 @@ import {
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import axios from "../api/axios";
 import { Link, useNavigate } from "react-router-dom";
+import { Checkbox } from "@mui/material";
+import { useDispatch, useSelector } from "react-redux";
+import { setRememberMe } from "../Redux/RememberMeSlice";
 
 const USER_REGEX = /^[A-z][A-z0-9-_]{3,23}$/;
 const PWD_REGEX = /^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#$%]).{8,24}$/;
 const REGISTER_URL = "/register";
 
 const Register = () => {
+  const [checked, setChecked] = useState(false);
+
+  const dispatch = useDispatch();
+
+  //const rememberMe = useSelector((state) => state.data.rememberMe);
+
+  //console.log(rememberMe);
+
+  const reducer = () => {
+    dispatch(setRememberMe()); // dohvatili smo reducer
+  };
+
   const userRef = useRef();
   const errRef = useRef();
 
@@ -29,10 +44,11 @@ const Register = () => {
   const [matchFocus, setMatchFocus] = useState(false);
 
   const [errMsg, setErrMsg] = useState("");
-  const [success, setSuccess] = useState(false);
+  // const [success, setSuccess] = useState(false);
+  const success = useSelector((state) => state.rememberMe.rememberMe);
 
-  const [name, setName]=useState("");
-  const navigate=useNavigate();
+  const [name, setName] = useState("");
+  const navigate = useNavigate();
   useEffect(() => {
     userRef.current.focus();
   }, []);
@@ -59,41 +75,46 @@ const Register = () => {
       setErrMsg("Invalid Entry");
       return;
     }
-    console.log(user, pwd);
+    console.log(user, pwd,checked);
     try {
       const response = await axios.post(
         "auth/login",
-        JSON.stringify({ username: user, password: pwd }), // Objekat kreiran direktno
+        JSON.stringify({ username: user, password: pwd, rememberMe: checked }), // Objekat kreiran direktno
         {
           headers: { "Content-Type": "application/json" }, // Zaglavlja
           withCredentials: true, // Ako koristite kolačiće ili sesije
         }
       );
-      const token= response.data.access_token;
-      sessionStorage.clear();
-      sessionStorage.setItem("authToken", token);
+      const token = response.data.access_token;
 
-      if(response.status===200)
-      {
-        const UserInfo=await axios.get("auth/profile", {headers:{ 
-          Authorization:`Bearer ${token}`
-        }});
+      if (response.status === 200) {
+        const UserInfo = await axios.get("auth/profile", {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
 
         setName(UserInfo.data.name);
-      }
-      console.log(response?.data);
-      console.log(response?.accessToken);
-      console.log(JSON.stringify(response));
-      setSuccess(true);
+        
 
-      
-
-      if (response.data.access_token) {
-        sessionStorage.clear();
-        sessionStorage.setItem("authToken", response.data.access_token);
+        if (checked) {
+          console.log("postavljam localstorage ");
+          localStorage.setItem("rembemberMe", true);
+          localStorage.setItem("authToken", token);
+        }
       }
-      //clear state and controlled inputs
-      //need value attrib on inputs for this
+      dispatch(setRememberMe(true)); //ovde
+
+      // console.log(response?.data);
+      // console.log(response?.accessToken);
+      // console.log(JSON.stringify(response));
+      //setSuccess(true);
+
+      // if (response.data.access_token) {
+      //   sessionStorage.clear();
+      //   sessionStorage.setItem("authToken", response.data.access_token);
+      // }
+
       setUser("");
       setPwd("");
       setMatchPwd("");
@@ -109,16 +130,16 @@ const Register = () => {
     }
   };
 
+  const logOutHandle = () => {
+    localStorage.clear();
+    dispatch(setRememberMe(false));
 
-  const logOutHandle= ()=>
-  {
-    sessionStorage.clear();
-    setSuccess(false);
-  }
+    console.log(success);
+  };
 
   const prikaziPodatke = async () => {
     try {
-      const token = sessionStorage.getItem("authToken"); // Dohvatanje tokena iz sessionStorage
+      const token = localStorage.getItem("authToken"); // Dohvatanje tokena iz sessionStorage
       console.log("Token je pblika ", token, " iz auth/profile");
 
       if (!token) {
@@ -164,25 +185,75 @@ const Register = () => {
       .catch((error) => {
         console.error("Greška prilikom poziva API-ja:", error);
 
-      
         if (error.response) {
           alert(`Error: ${error.response.data.message || error.response.data}`);
         }
       });
   };
 
+  const checkBoxHandler = (event) => {
+    // dispatch(setRememberMe(true));
+
+    setChecked(event.target.checked);
+    localStorage.setItem("rememberMe", true);
+    console.log("Checked:", event.target.checked);
+  };
+
+  const klikni = async () => {
+    const token = localStorage.getItem("authToken");
+    try {
+      // Slanje POST zahteva sa tokenom u body
+      const response = await axios.post(
+        "auth/validate-token", // URL do tvoje metode
+        { token } // Poslati token u body zahteva
+      );
+
+      if (response.data.valid) {
+        console.log("Token is valid.");
+        return true; // Token je validan, možeš nastaviti sa daljim akcijama
+      } else {
+        console.log("Invalid token. Logging out.");
+        // Ukloni token iz localStorage/sessionStorage, ako je nevalidan
+        localStorage.removeItem("authToken");
+        sessionStorage.removeItem("authToken");
+      }
+    } catch (error) {
+      console.error("Error validating token:", error);
+      // Ako je došlo do greške (npr. server nije dostupan)
+    }
+  };
+
   return (
     <>
       {success ? (
-        <section>
+        <section className="bg-blue-800">
           <h1>Welcome {name}!</h1>
           <p> You logged successfully!</p>
           <p>
-            <a href="#">Sign In</a>
-            <button onClick={prikaziPodatke}>auth/profile </button>
-            <button onClick={vratiUsera}>users/getUser/5 </button>
+            <div className="flex flex-col space-y-2">
+              <button
+                className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+                onClick={prikaziPodatke}
+              >
+                auth/profile{" "}
+              </button>
+              <button
+                className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+                onClick={vratiUsera}
+              >
+                users/getUser/5{" "}
+              </button>
+            </div>
           </p>
-          <button onClick={logOutHandle}> Log out</button>
+          <button
+            className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+            onClick={logOutHandle}
+          >
+            {" "}
+            Log out
+          </button>
+
+          <button onClick={klikni}> proveri metodu </button>
         </section>
       ) : (
         <section>
@@ -218,6 +289,7 @@ const Register = () => {
               aria-describedby="uidnote"
               onFocus={() => setUserFocus(true)}
               onBlur={() => setUserFocus(false)}
+              className="text-black"
             />
             <p
               id="uidnote"
@@ -254,6 +326,7 @@ const Register = () => {
               aria-describedby="pwdnote"
               onFocus={() => setPwdFocus(true)}
               onBlur={() => setPwdFocus(false)}
+              className="text-black"
             />
             <p
               id="pwdnote"
@@ -272,52 +345,45 @@ const Register = () => {
               <span aria-label="dollar sign">$</span>{" "}
               <span aria-label="percent">%</span>
             </p>
-
-            {/* <label htmlFor="confirm_pwd">
-              Confirm Password:
-              <FontAwesomeIcon
-                icon={faCheck}
-                className={validMatch && matchPwd ? "valid" : "hide"}
+            <label>
+              <Checkbox
+                checked={checked}
+                onChange={checkBoxHandler}
+                color="primary"
               />
-              <FontAwesomeIcon
-                icon={faTimes}
-                className={validMatch || !matchPwd ? "hide" : "invalid"}
-              />
+              Remember me
             </label>
-            <input
-              type="password"
-              id="confirm_pwd"
-              onChange={(e) => setMatchPwd(e.target.value)}
-              value={matchPwd}
-              required
-              aria-invalid={validMatch ? "false" : "true"}
-              aria-describedby="confirmnote"
-              onFocus={() => setMatchFocus(true)}
-              onBlur={() => setMatchFocus(false)}
-            />
-            <p
-              id="confirmnote"
-              className={
-                matchFocus && !validMatch ? "instructions" : "offscreen"
-              }
-            >
-              <FontAwesomeIcon icon={faInfoCircle} />
-              Must match the first password input field.
-            </p> */}
-
-            <button
-              disabled={!validName || !validPwd  ? true : false} // disabled={!validName || !validPwd || !validMatch ? true : false}
-            >
-              Sign Up
-            </button>
-            <Link to="/register"> Register</Link>
+            <div className="flex items-center justify-between">
+              <button
+                className={`bg-blue-500 text-white px-4 py-2 rounded  
+                        ${
+                          !validName || !validPwd
+                            ? "opacity-50 cursor-not-allowed"
+                            : "hover:bg-blue-700"
+                        }`}
+                disabled={!validName || !validPwd}
+                type="submit"
+              >
+                Sign In
+              </button>
+              <button onClick={reducer}> Klikni</button>
+              {/* <a class="inline-block align-baseline font-bold text-sm text-blue-500 hover:text-blue-800" href="#">
+        Forgot Password?
+      </a> */}
+              <Link to="/register" className="hover:underline blue-500">
+                Forgot password?
+              </Link>{" "}
+              //todo
+            </div>
           </form>
+
           <p>
-            Already registered?
+            You dont have an account?
             <br />
             <span className="line">
-              {/*put router link here*/}
-              <a href="#">Sign In</a>
+              <Link to="/register" className="hover:underline blue-500">
+                Register now
+              </Link>
             </span>
           </p>
         </section>

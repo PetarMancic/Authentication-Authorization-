@@ -16,7 +16,7 @@ import { AuthGuard } from '@nestjs/passport';
     JwtModule.register({
       global: true,
       secret: jwtConstants.secret,
-      signOptions: { expiresIn: '300sec' },
+     // signOptions: { expiresIn: '60sec' }, ovo radim u authService metodom auth login
     }),
     TypeOrmModule.forFeature([User]),
   ],

@@ -3,22 +3,27 @@ import {
   Controller,
   Get,
   HttpCode,
+  HttpException,
   HttpStatus,
   Post,
+  Query,
   Request,
   UseGuards,
 } from '@nestjs/common';
+import { JwtService } from '@nestjs/jwt';
 import { AuthService } from './auth.service';
 import { AuthGuard } from './auth.guard';
 
 @Controller('auth')
 export class AuthController {
-  constructor(private authService: AuthService) {}
+  constructor(private authService: AuthService,
+          private readonly jwtService:JwtService
+  ) {}
 
   @HttpCode(HttpStatus.OK)
   @Post('login')
   signIn(@Body() signInDto: Record<string, any>) {
-    return this.authService.signIn(signInDto.username, signInDto.password);
+    return this.authService.signIn(signInDto.username, signInDto.password, signInDto.rememberMe);
   }
 
 
@@ -37,5 +42,17 @@ export class AuthController {
     return req.user?.prezime;
    
   }
+
+
+//ovde mozda treba useGuard da se iskoristi 
+  @Post('validate-token')
+  async validateToken(@Body('token') token: string) {
+   return this.authService.validateToken(token);
+  }
+  
+  
+
+
+
 
 }
